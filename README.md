@@ -25,6 +25,7 @@ Google Translate网页版的封装，通过[Electron](https://www.electronjs.org
 * 允许配置默认主窗口尺寸；
 * Mini窗口自动获取输入焦点；
 * 支持开机启动；
+<br/>
 
 * 不支持离线使用；
 * 不支持取词划词；
@@ -38,7 +39,7 @@ Google Translate网页版的封装，通过[Electron](https://www.electronjs.org
 
 
 ## 实现
-通过Electron简单的封装https://translate.google.cn作为主窗口。
+通过Electron简单的封装translate.google.cn作为主窗口。
 
 ### Mini窗口
 Mini窗口的大小是固定的，想要修改只能修改代码。为了在更小区域呈现界面，本程序通过注入css隐藏了Mini窗口的Google Translate头部，还做了一些微调以减小其尺寸。
@@ -60,7 +61,7 @@ Mini窗口的大小是固定的，想要修改只能修改代码。为了在更�
 配置文件只能是运行目录下的`config.json`。修改配置可能需要重启程序以应用修改。
 
 | 配置名称 | 类型 | 默认值 | 备注 |
-| ----------------------- | ------- | --------------------------- |
+| ----------------------- | ------- | --------------------------- | --------------- |
 | mainWindowWidth         | number  | 1024                        | 主窗口宽
 | mainWindowHeight        | number  | 586                         | 主窗口高
 | url                     | string  | https://translate.google.cn | 加载的url，其它地址没测试过
