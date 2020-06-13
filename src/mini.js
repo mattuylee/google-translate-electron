@@ -1,7 +1,13 @@
 const path = require('path');
 const { BrowserWindow } = require('electron');
-const getMenu = require('./menu');
 const { config } = require('./config');
+
+const miniControl = {
+  /** 迷你窗口是否处于可视区域 */
+  isMiniWindowVisible: true,
+  previousPos: null
+}
+
 
 function createMiniWindow () {
   let miniWindow = new BrowserWindow({
@@ -22,7 +28,8 @@ function createMiniWindow () {
     maximizable: true,
     alwaysOnTop: true,
     fullscreenable: false,
-    skipTaskbar: true,
+    skipTaskbar: false,
+
   });
 
   miniWindow.on('focus', () => {
@@ -33,28 +40,11 @@ function createMiniWindow () {
   });
   miniWindow.on('close', ev => {
     ev.preventDefault();
-    miniWindow.hide();
+    toggleMiniWindowVisibility(miniWindow);
   });
 
   miniWindow.loadURL(config.url);
   miniWindow.webContents.on('dom-ready', () => {
-    miniWindow.webContents.executeJavaScript(`
-    setTimeout(() => {
-      console.log('throw');
-      throw('crashed');
-    }, 10000);
-    var source = document.getElementById('source');
-    if (source) {
-      document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'hidden') {
-          source.value = '';
-        }
-        else {
-          source.focus();
-        }
-      });
-    }
-    `);
     miniWindow.webContents.insertCSS(`
     /* 隐藏通知，文本/文件切换栏 */
     .container .input-button-container,
@@ -62,8 +52,9 @@ function createMiniWindow () {
       display: none !important;
     }
     /* mini窗口隐藏header和历史记录按钮和拼音 */
-    .tlid-source-transliteration-container.source-transliteration-container,
-    header.gb_sa.gb_2a.gb_5e.gb_ta, .gp-footer {
+    header,
+    .gp-footer,
+    .tlid-source-transliteration-container.source-transliteration-container {
       display: none !important;
     }
     /* 防止高度较小时出现双滚动条 */
@@ -103,8 +94,64 @@ function createMiniWindow () {
       miniWindow.insertCSS(config.extraCssForMini);
     }
   });
-
+  miniControl.previousPos = miniWindow.getPosition();
+  toggleMiniWindowVisibility(miniWindow);
+  miniWindow.show();
+  let interval = config.keepActiveInterval | 0;
+  if (miniWindow && interval !== 0) {
+    interval = Math.max(1000, interval);
+    setInterval(() => {
+      if (!miniControl.isMiniWindowVisible) {
+        miniWindow.webContents.executeJavaScript(`
+        var source = document.getElementById('source');
+        if (source) {
+          source.value = source.value;
+        }
+        `);
+      }
+    }, interval);
+  }
   return miniWindow;
 }
 
-module.exports = createMiniWindow;
+function toggleMiniWindowVisibility(window) {
+  if (!window) { return; }
+  miniControl.isMiniWindowVisible = !miniControl.isMiniWindowVisible;
+  if (miniControl.isMiniWindowVisible) {
+    if (miniControl.previousPos) {
+      window.setPosition(...miniControl.previousPos);
+    }
+    else {
+      window.show();
+    }
+    focusInput(window);
+    window.focus();
+  }
+  else {
+    miniControl.previousPos = window.getPosition();
+    window.setPosition(-1000, -1000, false);
+    clearInput(window);
+  }
+}
+
+function clearInput(window) {
+  window.webContents.executeJavaScript(`
+    var source = document.getElementById('source');
+    if (source) {
+        source.value = '';
+    }
+  `);
+}
+function focusInput (window) {
+  window.webContents.executeJavaScript(`
+    var source = document.getElementById('source');
+    if (source) {
+        source.focus();
+    }
+  `);
+}
+
+module.exports = {
+  createMiniWindow,
+  toggleMiniWindowVisibility
+}

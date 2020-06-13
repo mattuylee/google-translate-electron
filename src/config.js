@@ -14,6 +14,7 @@ const config = {
   extraCssForMini: '',
   minimizeToTrayWhenClose: true,
   minimizeToTrayWenStart: true,
+  keepActiveInterval: 60000
 };
 
 try {

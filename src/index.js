@@ -1,7 +1,7 @@
 const path = require('path');
 const { app, globalShortcut, BrowserWindow, Menu, Tray } = require('electron');
-const createMiniWindow = require('./mini');
-const createMainWindow = require('./main');
+const { createMiniWindow, toggleMiniWindowVisibility } = require('./mini');
+const { createMainWindow, toggleMainWindowVisibility } = require('./main');
 const getMenu = require('./menu');
 const { config, flushConfig } = require('./config');
 const toast = require('./notify');
@@ -36,12 +36,14 @@ app.on('ready', () => {
   mainWindow.on('hide', () => {
     if (miniWindow) {
       miniWindow.setParentWindow(mainWindow);
+      miniWindow.setSkipTaskbar(false);
     }
   });
   //主窗口显示时如果mini窗口的父窗口是主窗口，mini窗口获得焦点时父窗口也会弹出来。。emm又没找到其他靠谱的方法
   mainWindow.on('show', () => {
     if (miniWindow) {
       miniWindow.setParentWindow(null);
+      miniWindow.setSkipTaskbar(true);
     }
   });
   if (!config.minimizeToTrayWenStart) {
@@ -59,10 +61,7 @@ app.on('ready', () => {
 });
 
 function registerMiniWindow() {
-  // if (!config.miniWindowEnabled) {
-  //   return;
-  // }
-  miniWindow = createMiniWindow();  
+  miniWindow = createMiniWindow();
   miniWindow.setParentWindow(mainWindow);
   const miniMenu = getMenu(mainWindow, miniWindow, miniWindow);
   miniWindow.setMenu(miniMenu);
@@ -74,8 +73,8 @@ function registerMiniWindow() {
 function setupTray() {
   tray = new Tray(path.resolve(__dirname, 'assets/icon.ico'));
   const contextMenu = Menu.buildFromTemplate([
-    { label: "显示主界面", click: () => toggleMainWindowVisibility() },
-    { label: "显示Mini窗口", click: () => toggleMiniWindowVisibility() },
+    { label: "显示主界面", click: () => toggleMainWindowVisibility(mainWindow) },
+    { label: "显示Mini窗口", click: () => toggleMiniWindowVisibility(miniWindow) },
     {
       type: 'checkbox',
       label: "开机启动",
@@ -91,7 +90,7 @@ function setupTray() {
     { label: "退出", click: () => app.exit() }
   ]);
   tray.setToolTip("Google Translate Desktop");
-  tray.on('click', () => toggleMainWindowVisibility());
+  tray.on('click', () => toggleMainWindowVisibility(mainWindow));
   tray.setContextMenu(contextMenu);
 }
 
@@ -124,7 +123,7 @@ function toggleMiniShortcut(initial) {
   let enabled = initial ? config.miniWindowEnabled : !config.miniWindowEnabled;
   let success = true;
   if (enabled) {
-    if (!globalShortcut.register(config.miniShortcut, () => toggleMiniWindowVisibility())) {
+    if (!globalShortcut.register(config.miniShortcut, () => toggleMiniWindowVisibility(miniWindow))) {
       toast.show("快捷键注册失败，请检查设置的快捷键是否被其他软件占用。", "错误", {
         type: 'error'
       });
@@ -141,26 +140,4 @@ function toggleMiniShortcut(initial) {
     }
   }
   return enabled;
-}
-
-function toggleMiniWindowVisibility() {
-  if (!miniWindow) { return; }
-  if (miniWindow.isVisible()) {
-    miniWindow.hide();
-  }
-  else {
-    miniWindow.show();
-    miniWindow.focus();
-  }
-}
-
-function toggleMainWindowVisibility() {
-  if (!mainWindow) { return; }
-  if (mainWindow.isVisible()) {
-    mainWindow.hide();
-  }
-  else {
-    mainWindow.show();
-    mainWindow.focus();
-  }
 }

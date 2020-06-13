@@ -1,6 +1,5 @@
 const path = require('path');
 const { BrowserWindow } = require('electron');
-const getMenu = require('./menu');
 const { config } = require('./config');
 
 function createMainWindow() {   
@@ -36,4 +35,19 @@ function createMainWindow() {
   return win;
 }
 
-module.exports = createMainWindow;
+function toggleMainWindowVisibility(window) {
+  if (!window) { return; }
+  if (window.isVisible()) {
+    window.hide();
+  }
+  else {
+    window.show();
+    window.focus();
+  }
+}
+
+
+module.exports = {
+  createMainWindow,
+  toggleMainWindowVisibility
+}
