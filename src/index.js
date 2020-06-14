@@ -5,6 +5,7 @@ const { createMainWindow, toggleMainWindowVisibility } = require('./main');
 const getMenu = require('./menu');
 const { config, flushConfig } = require('./config');
 const toast = require('./notify');
+const main = require('./main');
 
 //将tray保存到全局变量，防止其被自动回收
 let tray;
@@ -74,7 +75,7 @@ function setupTray() {
   tray = new Tray(path.resolve(__dirname, 'assets/icon.ico'));
   const contextMenu = Menu.buildFromTemplate([
     { label: "显示主界面", click: () => toggleMainWindowVisibility(mainWindow) },
-    { label: "显示Mini窗口", click: () => toggleMiniWindowVisibility(miniWindow) },
+    { label: "显示Mini窗口", click: () => toggleMiniWindowVisibility(miniWindow, mainWindow) },
     {
       type: 'checkbox',
       label: "开机启动",
@@ -123,7 +124,7 @@ function toggleMiniShortcut(initial) {
   let enabled = initial ? config.miniWindowEnabled : !config.miniWindowEnabled;
   let success = true;
   if (enabled) {
-    if (!globalShortcut.register(config.miniShortcut, () => toggleMiniWindowVisibility(miniWindow))) {
+    if (!globalShortcut.register(config.miniShortcut, () => toggleMiniWindowVisibility(miniWindow, mainWindow))) {
       toast.show("快捷键注册失败，请检查设置的快捷键是否被其他软件占用。", "错误", {
         type: 'error'
       });

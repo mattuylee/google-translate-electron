@@ -105,7 +105,7 @@ function createMiniWindow () {
         miniWindow.webContents.executeJavaScript(`
         var source = document.getElementById('source');
         if (source) {
-          source.value = source.value;
+          source.value = source.value ? '' : Math.random();
         }
         `);
       }
@@ -114,7 +114,7 @@ function createMiniWindow () {
   return miniWindow;
 }
 
-function toggleMiniWindowVisibility(window) {
+function toggleMiniWindowVisibility(window, mainWindow) {
   if (!window) { return; }
   miniControl.isMiniWindowVisible = !miniControl.isMiniWindowVisible;
   if (miniControl.isMiniWindowVisible) {
@@ -124,12 +124,17 @@ function toggleMiniWindowVisibility(window) {
     else {
       window.show();
     }
+    if (!mainWindow || !mainWindow.isVisible()) {
+      window.setSkipTaskbar(false);
+    }
+    clearInput(window);
     focusInput(window);
     window.focus();
   }
   else {
     miniControl.previousPos = window.getPosition();
     window.setPosition(-1000, -1000, false);
+    window.setSkipTaskbar(true);
     clearInput(window);
   }
 }
