@@ -1,4 +1,5 @@
-const { Menu } = require('electron');
+const { app, Menu } = require('electron');
+const { toggleTrayIcon } = require('./tools');
 
 function getMenu(/** @type Electron.BrowserWindow */mainWindow, miniWindow, current) {
   const template = [{
@@ -25,8 +26,12 @@ function getMenu(/** @type Electron.BrowserWindow */mainWindow, miniWindow, curr
         click: () => current.webContents.openDevTools()
       },
       {
-        label: "退出",
-        role: 'quit'
+        label: "显示托盘图标",
+        click: () => toggleTrayIcon()
+      },
+      {
+        label: "退出程序",
+        click: () => app.exit(0)
       }
     ])
   }];

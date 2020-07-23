@@ -1,6 +1,5 @@
 const fs = require('fs');
 const { promisify } = require('util');
-const toast = require('./notify');
 const { debounce } = require('lodash');
 
 const config = {
@@ -14,7 +13,8 @@ const config = {
   extraCssForMini: '',
   minimizeToTrayWhenClose: true,
   minimizeToTrayWenStart: true,
-  keepActiveInterval: 60000
+  keepActiveInterval: 60000,
+  skipTrayIcon: false
 };
 
 try {
@@ -31,7 +31,8 @@ async function flushConfig() {
     await flush('./config.json', JSON.stringify(config, null, 4));
   }
   catch {
-    toast.show("保存配置失败。", { messageType: 'error' });
+    const { notify } = require('./tools');
+    notify("保存配置失败。", { messageType: 'error' });
   }
 }
 

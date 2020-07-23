@@ -2,13 +2,6 @@ const path = require('path');
 const { BrowserWindow } = require('electron');
 const { config } = require('./config');
 
-const miniControl = {
-  /** 迷你窗口是否处于可视区域 */
-  isMiniWindowVisible: true,
-  previousPos: null
-}
-
-
 function createMiniWindow () {
   let miniWindow = new BrowserWindow({
     width: 500,
@@ -17,7 +10,7 @@ function createMiniWindow () {
     minHeight: 315,
     maxWidth: 500,
     maxHeight: 315,
-    icon: path.resolve(__dirname, './assets/icon.ico'),
+    icon: path.resolve(__dirname, './assets/icon.png'),
     webPreferences: {
       nodeIntegration: false
     },
@@ -29,7 +22,6 @@ function createMiniWindow () {
     alwaysOnTop: true,
     fullscreenable: false,
     skipTaskbar: false,
-
   });
 
   miniWindow.on('focus', () => {
@@ -94,14 +86,11 @@ function createMiniWindow () {
       miniWindow.insertCSS(config.extraCssForMini);
     }
   });
-  miniControl.previousPos = miniWindow.getPosition();
-  toggleMiniWindowVisibility(miniWindow);
-  miniWindow.show();
   let interval = config.keepActiveInterval | 0;
   if (miniWindow && interval !== 0) {
     interval = Math.max(1000, interval);
     setInterval(() => {
-      if (!miniControl.isMiniWindowVisible) {
+      if (!miniWindow.isVisible()) {
         miniWindow.webContents.executeJavaScript(`
         var source = document.getElementById('source');
         if (source) {
@@ -114,28 +103,17 @@ function createMiniWindow () {
   return miniWindow;
 }
 
-function toggleMiniWindowVisibility(window, mainWindow) {
-  if (!window) { return; }
-  miniControl.isMiniWindowVisible = !miniControl.isMiniWindowVisible;
-  if (miniControl.isMiniWindowVisible) {
-    if (miniControl.previousPos) {
-      window.setPosition(...miniControl.previousPos);
-    }
-    else {
-      window.show();
-    }
-    if (!mainWindow || !mainWindow.isVisible()) {
-      window.setSkipTaskbar(false);
-    }
-    clearInput(window);
-    focusInput(window);
-    window.focus();
+function toggleMiniWindowVisibility(miniWindow, mainWindow) {
+  if (!miniWindow) { return; }
+  if (miniWindow.isVisible()) {
+    miniWindow.hide();
+    clearInput(miniWindow);
   }
   else {
-    miniControl.previousPos = window.getPosition();
-    window.setPosition(-1000, -1000, false);
-    window.setSkipTaskbar(true);
-    clearInput(window);
+    miniWindow.show();
+    clearInput(miniWindow);
+    focusInput(miniWindow);
+    miniWindow.focus();
   }
 }
 

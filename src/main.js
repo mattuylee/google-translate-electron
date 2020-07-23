@@ -6,7 +6,7 @@ function createMainWindow() {
   const win = new BrowserWindow({
     width: config.mainWindowWidth,
     height: config.mainWindowHeight,
-    icon: path.resolve(__dirname, './assets/icon.ico'),
+    icon: path.resolve(__dirname, './assets/icon.png'),
     title: 'Google Translate',
     show: false,
     webPreferences: {

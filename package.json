@@ -1,16 +1,17 @@
 {
   "name": "google-translate-electron",
   "author": "mattuy<mattuylee@outlook.com>",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "main": "./src/index.js",
   "description": "Google Translate for Windows Desktop, built with Electron",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "electron .",
-    "package": "electron-packager ./ --overwrite --win --out ./bin --icon ./appicon.ico --app-copyright \"copyright@mattuy<mattuylee@outlook.com>\" --win32metadata.CompanyName=\"\""
+    "package-win": "electron-packager ./ --overwrite --platform=win32 --arch=x64,ia32 --out ./bin --icon ./appicon.ico --app-copyright \"copyright@mattuy<mattuylee@outlook.com>\" --win32metadata.CompanyName=\"\"",
+    "package-linux": "electron-packager ./ --overwrite --platform=linux --arch=x64,ia32,arm64 --out ./bin --icon ./appicon.png"
   },
-  "productName": "Google Translate Desktop",
-  "originalFilename": "Google Translate Desktop",
+  "productName": "google-translate-electron",
+  "originalFilename": "google-translate-electron",
   "dependencies": {
     "lodash": "^4.17.15"
   },

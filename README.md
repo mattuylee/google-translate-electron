@@ -30,7 +30,6 @@ Google Translate网页版的封装，通过[Electron](https://www.electronjs.org
 
 * 不支持离线使用；
 * 不支持取词划词；
-* 未测试Windows之外的平台；
 
 对于Mini窗口自动获取输入焦点和自动清除输入，由于是通过`dom-ready`事件注入JavaScript实现，因此在`dom-ready`之后才能生效。而这需要大概十几秒，因为`translate.google.cn`尝试从`google.com`获取一些资源，而访问google.com会等待超时后失败（国内环境），但这些资源并不是完成翻译功能所必须的，因此并不影响翻译功能的使用。但未完成的非ajax请求会让`dom-ready`事件迟迟不能触发，导致依赖此事件注入JavaScript的代码直到请求超时后才执行。  
 但这只在程序启动时发生，个人认为勉强能够忍受，就没有再折腾。如果有必要，或许可以通过`ServiceWorker`拦截？
@@ -54,9 +53,12 @@ Mini窗口的大小是固定的，想要修改只能修改代码。为了在更�
 `npm start`
 
 ### 打包
-`npm run package`
+#### Windows
+`npm run package-win`
+#### linux
+`npm run package-linux`
 
-通过`electron-packager`进行打包。当然您也可以使用其它Electron打包工具，例如[electron-builder](https://github.com/electron-userland/electron-builder)。但请劳烦您自行配置。
+通过`electron-packager`进行打包。当然您也可以自定义打包器参数或使用其它Electron打包工具，例如[electron-builder](https://github.com/electron-userland/electron-builder)。但请劳烦您自行配置。
 
 
 ## 配置项
@@ -76,6 +78,9 @@ Mini窗口的大小是固定的，想要修改只能修改代码。为了在更�
 | minimizeToTrayWhenClose | boolean | true                        | 关闭主窗口时最小化到托盘
 | minimizeToTrayWenStart  | boolean | true                        | 启动时自动隐藏主窗口
 | keepActiveInterval      | number  | 60000                       | 自动操作Mini窗口以使其保持活跃的周期，单位ms，最低1000，为0禁止
+| skipTrayIcon            | boolean | false                       | 是否隐藏系统托盘图标
+
+注意，在部分linux桌面上动态切换是否显示托盘图标可能会导致托盘图标残留，因此最好直接修改config.json再重启而不是动态修改是否显示托盘图标。
 
 
 ## 使用截图

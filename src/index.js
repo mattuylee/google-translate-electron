@@ -1,34 +1,53 @@
-const path = require('path');
-const { app, globalShortcut, BrowserWindow, Menu, Tray } = require('electron');
-const { createMiniWindow, toggleMiniWindowVisibility } = require('./mini');
-const { createMainWindow, toggleMainWindowVisibility } = require('./main');
+const { app, globalShortcut, BrowserWindow } = require('electron');
+const { config } = require('./config');
+const { createMainWindow } = require('./main');
+const { createMiniWindow } = require('./mini');
 const getMenu = require('./menu');
-const { config, flushConfig } = require('./config');
-const toast = require('./notify');
-const main = require('./main');
-
-//将tray保存到全局变量，防止其被自动回收
-let tray;
+const {
+  initialSetup,
+  notify,
+  dismissNotify,
+  toggleMiniShortcut,
+  toggleTrayIcon,
+} = require('./tools');
 
 /** @type BrowserWindow */
 let mainWindow;
 /** @type BrowserWindow */
 let miniWindow;
 
-app.on('ready', () => {
-  setupTray();
-  toggleAutoStart(true);
+// 保证单一实例
+const gotTheLock = app.requestSingleInstanceLock()
+if (!gotTheLock) {
+  app.exit();
+  return;
+}
+app.on('second-instance', (event, commandLine, workingDirectory) => {
+  if (mainWindow) {
+    mainWindow.show();
+    if (mainWindow.isMinimized()) {
+      mainWindow.restore();
+    }
+    mainWindow.focus();
+  }
+})
 
+app.on('ready', () => {
   mainWindow = createMainWindow();
+  miniWindow = createMiniWindow();
+  initialSetup(mainWindow, miniWindow);
   mainWindow.on('close', ev => {
     if (config.minimizeToTrayWhenClose) {
       ev.preventDefault();
       mainWindow.hide();
     }
+    else {
+      app.quit();
+    }
   });
   mainWindow.on('closed', () => {
     if (miniWindow) {
-      toast.dismiss();
+      dismissNotify();
       globalShortcut.unregisterAll();
       miniWindow.destroy();
     }
@@ -51,18 +70,19 @@ app.on('ready', () => {
     mainWindow.show();
   }
   else {
-    toast.show("Google Translate Desktop已在后台运行。", null, {
+    notify("Google Translate Electron已在后台运行。", null, {
       use: 'notification',
       clickCallback: () => mainWindow.show()
     });
   }
+  toggleTrayIcon(config.skipTrayIcon);
   registerMiniWindow();
   const mainMenu = getMenu(mainWindow, miniWindow, mainWindow);
   mainWindow.setMenu(mainMenu);
 });
 
+
 function registerMiniWindow() {
-  miniWindow = createMiniWindow();
   miniWindow.setParentWindow(mainWindow);
   const miniMenu = getMenu(mainWindow, miniWindow, miniWindow);
   miniWindow.setMenu(miniMenu);
@@ -71,74 +91,3 @@ function registerMiniWindow() {
   }
 }
 
-function setupTray() {
-  tray = new Tray(path.resolve(__dirname, 'assets/icon.ico'));
-  const contextMenu = Menu.buildFromTemplate([
-    { label: "显示主界面", click: () => toggleMainWindowVisibility(mainWindow) },
-    { label: "显示Mini窗口", click: () => toggleMiniWindowVisibility(miniWindow, mainWindow) },
-    {
-      type: 'checkbox',
-      label: "开机启动",
-      checked: config.autoStart,
-      click: menu => menu.checked = toggleAutoStart()
-    },
-    {
-      type: 'checkbox',
-      label: "启用MINI窗口快捷键",
-      checked: config.miniWindowEnabled,
-      click: menu => menu.checked = toggleMiniShortcut()
-    },
-    { label: "退出", click: () => app.exit() }
-  ]);
-  tray.setToolTip("Google Translate Desktop");
-  tray.on('click', () => toggleMainWindowVisibility(mainWindow));
-  tray.setContextMenu(contextMenu);
-}
-
-function toggleAutoStart(initial) {
-  if (!initial) {
-    config.autoStart = !config.autoStart;
-  }
-  app.setLoginItemSettings({
-    openAtLogin: config.autoStart,
-    path: process.execPath,
-    openAsHidden: false,
-    args: [
-      '--autoStart'
-    ]
-  });
-  if (config.autoStart) {
-    toast.show("已允许Google Translate Desktop在您登录时自动启动。", "提示");
-  }
-  else {
-    toast.show("已禁止Google Translate Desktop在您登录时自动启动。", "提示");
-  }
-  if (!initial) {
-    flushConfig();
-  }
-  return config.autoStart;
-}
-
-//启用/禁用mini窗口快捷键
-function toggleMiniShortcut(initial) {
-  let enabled = initial ? config.miniWindowEnabled : !config.miniWindowEnabled;
-  let success = true;
-  if (enabled) {
-    if (!globalShortcut.register(config.miniShortcut, () => toggleMiniWindowVisibility(miniWindow, mainWindow))) {
-      toast.show("快捷键注册失败，请检查设置的快捷键是否被其他软件占用。", "错误", {
-        type: 'error'
-      });
-      success = false;
-    }
-  }
-  else {
-    globalShortcut.unregister(config.miniShortcut);
-  }
-  if (success) {
-    config.miniWindowEnabled = enabled;
-    if (!initial) {
-      flushConfig();
-    }
-  }
-  return enabled;
-}
