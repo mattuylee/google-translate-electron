@@ -15,7 +15,6 @@ Google Translate网页版的封装，通过[Electron](https://www.electronjs.org
 * 功能简陋
 * 必须联网
 * 自定义程度低，配置得直接修改配置文件
-* 只能在Windows上用（用到了Windows系统API）
 * 在Google Translate页面完全加载前Mini窗口不会自动获取焦点，而这可能需要等待好几十秒
 
 
@@ -32,7 +31,6 @@ Google Translate网页版的封装，通过[Electron](https://www.electronjs.org
 * 不支持取词划词；
 
 对于Mini窗口自动获取输入焦点和自动清除输入，由于是通过`dom-ready`事件注入JavaScript实现，因此在`dom-ready`之后才能生效。而这需要大概十几秒，因为`translate.google.cn`尝试从`google.com`获取一些资源，而访问google.com会等待超时后失败（国内环境），但这些资源并不是完成翻译功能所必须的，因此并不影响翻译功能的使用。但未完成的非ajax请求会让`dom-ready`事件迟迟不能触发，导致依赖此事件注入JavaScript的代码直到请求超时后才执行。  
-但这只在程序启动时发生，个人认为勉强能够忍受，就没有再折腾。如果有必要，或许可以通过`ServiceWorker`拦截？
 
 另外，在此期间，对于0.2版本可能会出现输入内容离奇消失的情况（每次运行周期最多出现一次）。这是因为程序在Mini窗口隐藏时自动清除输入，但由于注入的JS代码需要`dom-ready`事件后才执行，所以清除输入的代码可能会在不合适的时机被执行。但至多只可能发生一次。
 
