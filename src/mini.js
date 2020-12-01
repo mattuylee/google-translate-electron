@@ -12,6 +12,7 @@ function createMiniWindow () {
     maxHeight: 315,
     icon: path.resolve(__dirname, './assets/icon.png'),
     webPreferences: {
+      preload: path.resolve(__dirname, 'mini-preload.js'),
       nodeIntegration: false
     },
     title: "Google Translate Mini",
@@ -23,7 +24,6 @@ function createMiniWindow () {
     fullscreenable: false,
     skipTaskbar: false,
   });
-
   miniWindow.on('focus', () => {
     miniWindow.setOpacity(1);
   });
@@ -45,6 +45,7 @@ function createMiniWindow () {
     }
     /* mini窗口隐藏header和历史记录按钮和拼音 */
     header,
+    body > c-wiz:first-of-type > div:first-of-type > div:first-of-type,
     .gp-footer,
     .tlid-source-transliteration-container.source-transliteration-container {
       display: none !important;
@@ -91,12 +92,7 @@ function createMiniWindow () {
     interval = Math.max(1000, interval);
     setInterval(() => {
       if (!miniWindow.isVisible()) {
-        miniWindow.webContents.executeJavaScript(`
-        var source = document.getElementById('source');
-        if (source) {
-          source.value = source.value ? '' : Math.random();
-        }
-        `);
+        miniWindow.webContents.send('random-input');
       }
     }, interval);
   }
@@ -118,20 +114,10 @@ function toggleMiniWindowVisibility(miniWindow, mainWindow) {
 }
 
 function clearInput(window) {
-  window.webContents.executeJavaScript(`
-    var source = document.getElementById('source');
-    if (source) {
-        source.value = '';
-    }
-  `);
+  window.webContents.send('clear-input');
 }
 function focusInput (window) {
-  window.webContents.executeJavaScript(`
-    var source = document.getElementById('source');
-    if (source) {
-        source.focus();
-    }
-  `);
+  window.webContents.send('focus-input');
 }
 
 module.exports = {

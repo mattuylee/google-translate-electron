@@ -1,5 +1,6 @@
 const { app, Menu } = require('electron');
 const { toggleTrayIcon } = require('./tools');
+const { config } = require('./config');
 
 function getMenu(/** @type Electron.BrowserWindow */mainWindow, miniWindow, current) {
   const template = [{
@@ -19,6 +20,12 @@ function getMenu(/** @type Electron.BrowserWindow */mainWindow, miniWindow, curr
           if (!miniWindow) { return; }
           miniWindow.show();
           miniWindow.focus();
+        }
+      },
+      {
+        label: "重载页面",
+        click: () => {
+          current.loadURL(config.url);
         }
       },
       {
