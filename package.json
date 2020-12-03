@@ -1,7 +1,7 @@
 {
   "name": "google-translate-electron",
   "author": "mattuy<mattuylee@outlook.com>",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "main": "./src/index.js",
   "description": "Google Translate for Windows Desktop, built with Electron",
   "scripts": {
