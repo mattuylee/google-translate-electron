@@ -30,10 +30,6 @@ Google Translate网页版的封装，通过[Electron](https://www.electronjs.org
 * 不支持离线使用；
 * 不支持取词划词；
 
-对于Mini窗口自动获取输入焦点和自动清除输入，由于是通过`dom-ready`事件注入JavaScript实现，因此在`dom-ready`之后才能生效。而这需要大概十几秒，因为`translate.google.cn`尝试从`google.com`获取一些资源，而访问google.com会等待超时后失败（国内环境），但这些资源并不是完成翻译功能所必须的，因此并不影响翻译功能的使用。但未完成的非ajax请求会让`dom-ready`事件迟迟不能触发，导致依赖此事件注入JavaScript的代码直到请求超时后才执行。  
-
-另外，在此期间，对于0.2版本可能会出现输入内容离奇消失的情况（每次运行周期最多出现一次）。这是因为程序在Mini窗口隐藏时自动清除输入，但由于注入的JS代码需要`dom-ready`事件后才执行，所以清除输入的代码可能会在不合适的时机被执行。但至多只可能发生一次。
-
 对于封装的url，本程序仅对translate.google.cn做了样式微调，如果换成其它的url，可能需要自行调整样式。配置项中允许更改url参数来加载其他网页。如果需要，还可以通过提供额外CSS来调整样式，它们将被注入页面，见[配置项](##配置项)。  
 注意，你可能需要为你的样式加上!important标记以覆盖更高优先级的原始样式，因为CSS以嵌入式CSS的方式插入。
 
@@ -93,3 +89,10 @@ Mini窗口
 
 <img src="./blob/mini.png" alt="迷你窗口-有内容" />
 <img src="./blob/mini-input.png" alt="迷你窗口-有内容" />
+
+## Change Log
+v0.2.1
+
+* 修复mini窗口显示异常；
+* 使用preload脚本代替注入js；
+* 新增重载页面菜单；
