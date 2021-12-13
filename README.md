@@ -1,4 +1,7 @@
 # Google Translate Desktop
+
+## 【废弃】本人现在改用[translate-shell](https://github.com/soimort/translate-shell)了~此仓库不再维护。
+
 Google Translate网页版的封装，通过[Electron](https://www.electronjs.org)构建。
 
 首先说一下建立此仓库的目的。平时写代码经常需要查词，尝试了很多翻译软件，它们都很棒，但总是有些细节让人抓狂。或许作为一个翻译软件它们并没有什么问题，但在我个人的使用条件下，它们无法满足我的需求。
